@@ -1,0 +1,133 @@
+from pygame import *
+from time import time as timer
+
+
+init()
+
+
+win_width = 700
+win_height = 500
+window = display.set_mode((win_width, win_height))
+display.set_caption('Ping Pong')
+background = transform.scale(image.load('44534-prirodnyj_zapovednik-dolina-gornyj_hrebet-les-gora-1920x1080.jpg'), (win_width, win_height))
+
+
+
+
+
+speed_x = 3
+speed_y = 3
+
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
+        super().__init__()
+        self.image = transform.scale(image.load(player_image), (size_x, size_y))
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+    
+
+
+class Player(GameSprite):
+    def update(self):
+        keys = key.get_pressed()        
+        if keys[K_w] and self.rect.y > 0: 
+            self.rect.y -= self.speed
+
+        if keys[K_s] and self.rect.y < win_height - self.rect.height: 
+            self.rect.y += self.speed
+
+
+class Player1(GameSprite):
+    def update(self):
+        keys = key.get_pressed()
+        if keys[K_UP] and self.rect.y > 0:  
+            self.rect.y -= self.speed
+
+        if keys[K_DOWN] and self.rect.y < win_height - self.rect.height:
+            self.rect.y += self.speed
+
+
+ship = Player('vertical-bar-character-clip-art-vertical.jpg', 5, win_height // 2 - 75, 30, 150, 5) 
+ship1 = Player1('vertical-bar-character-clip-art-vertical.jpg', win_width - 35, win_height // 2 - 75, 30, 150, 5)
+ball = GameSprite("closeup-tennis-ball-texture-epyyq8aj79c5mii2.png", win_width // 2 - 25, win_height // 2 - 25, 50, 50, 10)
+zona = GameSprite('BSicon_STR.svg.png', 0, 0, 1, win_height, 0) 
+zona1 = GameSprite('BSicon_STR.svg.png', win_width - 1, 0, 1, win_height, 0)
+
+player1_lost = False
+player2_lost = False
+
+run = True
+finish = False
+clock = time.Clock()
+FPS = 60
+
+font.init()
+font = font.Font(None, 50)
+
+while run:
+    
+    for e in event.get():
+        if e.type == QUIT:
+            run = False
+
+    
+    if player1_lost or player2_lost:
+        finish = True
+
+    
+    if not finish:
+        
+        ball.rect.x += speed_x
+        ball.rect.y += speed_y
+
+        
+        if sprite.collide_rect(ball, ship) or sprite.collide_rect(ball, ship1):
+            speed_x *= -1
+
+        
+        if ball.rect.y < 0 or ball.rect.y > win_height - ball.rect.height:
+            speed_y *= -1
+
+        
+        if ball.rect.x < 0:
+            player1_lost = True  
+
+        
+        if ball.rect.x > win_width - ball.rect.width:
+            player2_lost = True  
+
+        
+        window.blit(background, (0, 0))
+        ship.update()
+        ship.reset()
+        ship1.update()
+        ship1.reset()
+        ball.reset()
+        zona.reset()  
+        zona1.reset()
+
+    else:  
+        
+        
+        
+        if player1_lost:
+            text = font.render("Игрок 1 проиграл!", True, (255, 0, 0))
+        elif player2_lost:
+            text = font.render("Игрок 2 проиграл!", True, (255, 0, 0))
+        else:
+            text = font.render("Игра окончена!", True, (255, 0, 0)) 
+
+        text_x = win_width // 2 - text.get_width() // 2
+        text_y = win_height // 2 - text.get_height() // 2
+        window.blit(text, (text_x, text_y))
+
+    display.update()
+    time.delay(1)
+    clock.tick(FPS)
